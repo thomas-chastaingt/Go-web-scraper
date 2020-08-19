@@ -4,11 +4,35 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"text/template"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func main() {
+type PageProperties struct {
+	Title string
+}
+
+func GetLatestBlogTitles(url string) (string, error) {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	titles := ""
+	doc.Find(".post-title").Each(func(i int, s *goquery.Selection) {
+		titles += "- " + s.Text() + "\n"
+	})
+	return titles, nil
+}
+
+func getUrl() {
 	blogTitles, err := GetLatestBlogTitles("https://golangcode.com")
 	if err != nil {
 		log.Println(err)
@@ -17,26 +41,21 @@ func main() {
 	fmt.Printf(blogTitles)
 }
 
-// GetLatestBlogTitles gets the latest blog title headings from the url
-// given and returns them as a list.
-func GetLatestBlogTitles(url string) (string, error) {
+func homePage(w http.ResponseWriter, r *http.Request) {
+	p := PageProperties{Title: "Golang web scraper"}
+	t, _ := template.ParseFiles("index.html")
+	t.Execute(w, p)
+}
+func submitUrl(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("hello world")
+}
 
-	// Get the HTML
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
+func handleRequest() {
+	http.HandleFunc("/", homePage)
+	http.HandleFunc("/submit", submitUrl)
+	log.Fatal(http.ListenAndServe(":8081", nil))
+}
 
-	// Convert HTML into goquery document
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	// Save each .post-title as a list
-	titles := ""
-	doc.Find(".post-title").Each(func(i int, s *goquery.Selection) {
-		titles += "- " + s.Text() + "\n"
-	})
-	return titles, nil
+func main() {
+	handleRequest()
 }
