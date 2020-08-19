@@ -32,8 +32,8 @@ func GetLatestBlogTitles(url string) (string, error) {
 	return titles, nil
 }
 
-func getUrl() {
-	blogTitles, err := GetLatestBlogTitles("https://golangcode.com")
+func getUrl(url string) {
+	blogTitles, err := GetLatestBlogTitles(url)
 	if err != nil {
 		log.Println(err)
 	}
@@ -47,7 +47,19 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, p)
 }
 func submitUrl(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("hello world")
+	if r.Method != "POST" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	furl := r.FormValue("url")
+
+	data := struct {
+		url string
+	}{
+		url: furl,
+	}
+	getUrl(data.url)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func handleRequest() {
