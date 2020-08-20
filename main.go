@@ -13,6 +13,10 @@ type PageProperties struct {
 	Title string
 }
 
+type Data struct {
+	data string
+}
+
 func GetLatestBlogTitles(url string) (string, error) {
 
 	resp, err := http.Get(url)
@@ -25,11 +29,12 @@ func GetLatestBlogTitles(url string) (string, error) {
 		return "", err
 	}
 
-	titles := ""
-	doc.Find(".post-title").Each(func(i int, s *goquery.Selection) {
-		titles += "- " + s.Text() + "\n"
+	html := ""
+	doc.Find("html").Each(func(i int, s *goquery.Selection) {
+		html += "- " + s.Text() + "\n"
 	})
-	return titles, nil
+	return html, nil
+
 }
 
 func getUrl(url string) {
